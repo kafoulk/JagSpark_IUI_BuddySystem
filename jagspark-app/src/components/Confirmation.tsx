@@ -1,8 +1,7 @@
-import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "./ui/button";
 import { ChevronLeft, Home as HomeIcon } from "lucide-react";
-import imgCelebration from "figma:asset/befb907d00ce6fd5ae8857ebd8e09b984140a51c.png";
+
 
 export function Confirmation() {
   const navigate = useNavigate();
@@ -34,7 +33,7 @@ export function Confirmation() {
           {/* Celebration Image */}
           <div className="mb-8 flex justify-center">
             <img 
-              src={imgCelebration} 
+              src=""
               alt="Celebration" 
               className="w-56 h-56 object-contain"
             />

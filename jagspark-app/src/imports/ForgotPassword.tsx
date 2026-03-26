@@ -85,7 +85,7 @@ export default function ForgotPassword() {
   return (
     <div className="bg-white relative size-full" data-name="Forgot Password">
       <div className="-translate-x-1/2 absolute left-1/2 size-[306px] top-[126px]" data-name="image 5">
-        <img alt="" className="absolute inset-0 max-w-none mix-blend-multiply object-cover pointer-events-none size-full" src={imgImage5} />
+        <img alt="" className="absolute inset-0 max-w-none mix-blend-multiply object-cover pointer-events-none size-full" src="" />
       </div>
       <div className="-translate-x-1/2 absolute bg-black bottom-[9px] h-[4px] left-1/2 rounded-[100px] w-[134px]" data-name="Home Indicator" />
       <Group3 />

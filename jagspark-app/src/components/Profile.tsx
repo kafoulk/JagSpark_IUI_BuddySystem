@@ -1,8 +1,6 @@
 import { useNavigate } from "react-router";
 import { ChevronLeft, Home as HomeIcon, X } from "lucide-react";
 import { useCompliments } from "../app/context/ComplimentsContext";
-import imgRectangle from "figma:asset/3f5e9ccf479c628a0f6b1ad462e4d72f38718102.png";
-import imgPin from "figma:asset/edd0208aaf8031da25aacd97033a10d72628a6de.png";
 
 export function Profile() {
   const navigate = useNavigate();
@@ -48,7 +46,7 @@ export function Profile() {
       <div className="flex justify-center mt-8">
         <div className="w-[119px] h-[119px] rounded-full overflow-hidden bg-gray-200">
           <img
-            src={imgRectangle}
+            src=""
             alt="Profile"
             className="w-full h-full object-cover"
           />
@@ -116,7 +114,7 @@ export function Profile() {
                 onClick={() => togglePin(compliment.id)}
                 className="absolute top-3 right-3 w-6 h-6"
               >
-                <img src={imgPin} alt="Pin" className="w-full h-full" />
+                <img src="" alt="Pin" className="w-full h-full" />
               </button>
               <p className="text-lg pr-8">{compliment.text}</p>
               <p className="text-gray-400 text-sm mt-2">-anonymous</p>

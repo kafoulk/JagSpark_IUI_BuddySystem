@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router";
 import { Home as HomeIcon, User, Heart, X } from "lucide-react";
 import { useCompliments } from "../app/context/ComplimentsContext";
 import { Button } from "./ui/button";
-import imgImage5 from "figma:asset/a8c19530c11fd500464c48794a0ea058f9d93dcc.png";
 
 export function ViewCompliment() {
   const navigate = useNavigate();
@@ -39,7 +38,7 @@ export function ViewCompliment() {
       <div className="flex justify-center pt-16">
         <div className="w-[176px] h-[176px]">
           <img
-            src={imgImage5}
+            src=""
             alt="JAGSPARK Logo"
             className="w-full h-full object-cover mix-blend-multiply"
           />
