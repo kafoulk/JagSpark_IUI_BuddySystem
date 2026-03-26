@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #FFF9F5;
+  --color-foreground: #242424;
+  --color-primary: #9B1C1C;
+  --color-primary-foreground: #FFFFFF;
+  --color-border: #e2e8f0;
+}
+
+/* Go all the way up to the project root and scan everything */
+@source "../../../**/*.{ts,tsx}"; 
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+  }
+}
