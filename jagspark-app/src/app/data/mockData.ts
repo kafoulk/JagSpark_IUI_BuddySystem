@@ -17,26 +17,26 @@ export interface Compliment {
 }
 
 export const users: User[] = [
-  { id: "1", name: "Warren Green", avatar: "figma:asset/01f566f6130910006a0314b0638a02f56f8942ce.png", lastSeen: "You both were in AI event" },
-  { id: "2", name: "Sarah Kim", avatar: "figma:asset/ad36f37d20734737d00738978d52e0fa453e756b.png", lastSeen: "You both were in HCI H543" },
-  { id: "3", name: "Liam Brown", avatar: "figma:asset/f12dd32c1fea17543ccfce3233695d2ee83fb8e5.png", lastSeen: "You both were in HCI H543" },
-  { id: "4", name: "Laura Lynn", avatar: "figma:asset/b02173ef0ad76f1db0b4be5fde917e8b75f560b9.png", lastSeen: "You both were in HCI H543" },
-  { id: "5", name: "Gary Main", avatar: "figma:asset/ba0b95eea7ab122d260fb002c57145a5f7034559.png", lastSeen: "You both were in HCI H543" },
-  { id: "6", name: "Jacob Davis", avatar: "figma:asset/1527fbc84ce347041b486093b5185a008e09eb5f.png", lastSeen: "You both were in AI event" },
-  { id: "7", name: "Sam Camperman", avatar: "figma:asset/0cb1f5d707e7af16ea3fcf1aa764a51bf75cd400.png", lastSeen: "You both were in HCI H543" },
-  { id: "8", name: "Jess Lee", avatar: "figma:asset/4a8e05c8d0e3615314c400e455f3befb6e4eb108.png", lastSeen: "You both were in HCI H543" },
-  { id: "9", name: "Laura Jane Wilkins", avatar: "figma:asset/b92add89ddd3407a4230fd868134aa166b2978e0.png", lastSeen: "You both were in HCI H543" },
-  { id: "10", name: "Antonio Velacruz", avatar: "figma:asset/02925d2e68097a2762680b1cc8aba5ba95a553a3.png", lastSeen: "You both were in HCI H543" },
-  { id: "11", name: "Rahul Kabir", avatar: "figma:asset/0acbb35f53977bf45fdfe4d7769e884a55f39dc2.png", lastSeen: "You both were in HCI H543" },
-  { id: "12", name: "John Hancock", avatar: "figma:asset/7922de96ea8b811f796d72fd4341d7968e59e0bc.png", lastSeen: "You both were in HCI H543" },
-  { id: "13", name: "Maya Robinson", avatar: "figma:asset/ad36f37d20734737d00738978d52e0fa453e756b.png", lastSeen: "You both were in HCI H543" },
+  { id: "1", name: "Warren Green", avatar: "https://i.pravatar.cc/150?img=12", lastSeen: "You both were in AI event" },
+  { id: "2", name: "Sarah Kim", avatar: "https://i.pravatar.cc/150?img=44", lastSeen: "You both were in HCI H543" },
+  { id: "3", name: "Liam Brown", avatar: "https://i.pravatar.cc/150?img=33", lastSeen: "You both were in HCI H543" },
+  { id: "4", name: "Laura Lynn", avatar: "https://i.pravatar.cc/150?img=48", lastSeen: "You both were in HCI H543" },
+  { id: "5", name: "Gary Main", avatar: "https://i.pravatar.cc/150?img=11", lastSeen: "You both were in HCI H543" },
+  { id: "6", name: "Jacob Davis", avatar: "https://i.pravatar.cc/150?img=13", lastSeen: "You both were in AI event" },
+  { id: "7", name: "Sam Camperman", avatar: "https://i.pravatar.cc/150?img=15", lastSeen: "You both were in HCI H543" },
+  { id: "8", name: "Jess Lee", avatar: "https://i.pravatar.cc/150?img=32", lastSeen: "You both were in HCI H543" },
+  { id: "9", name: "Laura Jane Wilkins", avatar: "https://i.pravatar.cc/150?img=23", lastSeen: "You both were in HCI H543" },
+  { id: "10", name: "Antonio Velacruz", avatar: "https://i.pravatar.cc/150?img=60", lastSeen: "You both were in HCI H543" },
+  { id: "11", name: "Rahul Kabir", avatar: "https://i.pravatar.cc/150?img=7", lastSeen: "You both were in HCI H543" },
+  { id: "12", name: "John Hancock", avatar: "https://i.pravatar.cc/150?img=69", lastSeen: "You both were in HCI H543" },
+  { id: "13", name: "Maya Robinson", avatar: "https://i.pravatar.cc/150?img=49", lastSeen: "You both were in HCI H543" },
 ];
 
 export const recentCompliments: Compliment[] = [
   {
     id: "1",
     text: "You always help people in class 🤝",
-    recipientId: "7",
+    recipientId: "13",
     recipientName: "Maya Robinson",
     isAnonymous: true,
     likes: 12,
@@ -46,7 +46,7 @@ export const recentCompliments: Compliment[] = [
     id: "2",
     text: "You made the group project easier 🙂 THANKS.",
     recipientId: "1",
-    recipientName: "Mariah Greer",
+    recipientName: "Warren Green",
     isAnonymous: true,
     likes: 3,
     timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
@@ -73,6 +73,7 @@ export const complimentSuggestions = [
 export const currentUser = {
   id: "current",
   name: "Current User",
+  avatar: "https://i.pravatar.cc/150?img=56",
   stats: {
     sent: 14,
     received: 12,
@@ -95,9 +96,10 @@ export const currentUser = {
 };
 
 export const userProfiles: { [key: string]: any } = {
-  "7": {
-    id: "7",
+  "13": {
+    id: "13",
     name: "Maya Robinson",
+    avatar: "https://i.pravatar.cc/150?img=49",
     stats: {
       sent: 14,
       received: 12,
