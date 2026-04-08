@@ -72,7 +72,7 @@ export function WriteCompliment() {
       </div>
 
       <div className="p-4">
-        <h2 className="text-xl mb-6 text-center text-black font-semibold">Write Compliment</h2>
+        <h2 className="text-xl mb-6 text-center text-black font-semibold">Send a Spark</h2>
 
         <div className="mb-6">
           <label className="text-sm text-gray-900 mb-2 block font-medium">To:</label>

@@ -1,26 +1,41 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { recentCompliments as initialCompliments } from "../data/mockData";
+import { db, storage } from "../../firebase"; // Added storage here
+import { 
+  collection, 
+  addDoc, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  serverTimestamp,
+  updateDoc,
+  doc,
+  setDoc,
+  increment 
+} from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Added Storage imports
 import type { Compliment } from "../data/mockData";
 
 interface UserProfile {
   fullName: string;
   email: string;
   username: string;
-  avatar?: string; // Added avatar support
+  avatar?: string;
+  pinnedCompliments?: string[]; 
 }
 
 interface ComplimentsContextType {
   user: UserProfile | null;
-  setUser: (user: UserProfile | null) => void;
-  updateUser: (updatedData: Partial<UserProfile>) => void; // New update function
+  setUser: (user: UserProfile | null) => Promise<void>;
+  updateUser: (updatedData: Partial<UserProfile>) => Promise<void>;
+  uploadAvatar: (file: File) => Promise<string | undefined>; // 1. Added to Interface
   compliments: Compliment[];
-  toggleLike: (complimentId: string) => void;
+  toggleLike: (complimentId: string) => Promise<void>;
   isLiked: (complimentId: string) => boolean;
-  sendCompliment: (compliment: Omit<Compliment, "id" | "timestamp" | "likes">) => void;
+  sendCompliment: (compliment: Omit<Compliment, "id" | "timestamp" | "likes">) => Promise<void>;
   receivedCompliments: Compliment[];
   sentCompliments: Compliment[];
   pinnedCompliments: string[];
-  togglePin: (complimentId: string) => void;
+  togglePin: (complimentId: string) => Promise<void>;
   hasNewCompliments: boolean;
   markAsSeen: () => void;
 }
@@ -33,47 +48,110 @@ export function ComplimentsProvider({ children }: { children: ReactNode }) {
     return activeSession ? JSON.parse(activeSession) : null;
   });
 
-  const [compliments, setCompliments] = useState<Compliment[]>(() => {
-    const saved = localStorage.getItem("jagspark_compliments_db");
-    return saved ? JSON.parse(saved) : initialCompliments;
-  });
-
+  const [compliments, setCompliments] = useState<Compliment[]>([]);
   const [likedCompliments, setLikedCompliments] = useState<Set<string>>(new Set());
 
-  const [pinnedCompliments, setPinnedCompliments] = useState<string[]>(() => {
-    const savedPins = localStorage.getItem("jagspark_pinned_db");
-    return savedPins ? JSON.parse(savedPins) : [];
-  });
-
-  const [lastSeenCount, setLastSeenCount] = useState<number>(0);
-
-  // Sync Likes and Seen Count when User changes
+  // --- SYNC COMPLIMENTS ---
   useEffect(() => {
-    if (user) {
-      const savedLikes = localStorage.getItem(`jagspark_likes_${user.email}`);
-      setLikedCompliments(new Set(savedLikes ? JSON.parse(savedLikes) : []));
-      
-      const savedCount = localStorage.getItem(`jagspark_seen_count_${user.email}`);
-      setLastSeenCount(savedCount ? parseInt(savedCount) : 0);
+    const q = query(collection(db, "compliments"), orderBy("timestamp", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+        timestamp: docSnap.data().timestamp?.toDate() || new Date(),
+      })) as Compliment[];
+      setCompliments(docs);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // --- SYNC USER PROFILE & PINS ---
+  useEffect(() => {
+    if (!user?.email) return;
+    const userRef = doc(db, "users", user.email);
+    const unsubscribe = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const userData = docSnap.data() as UserProfile;
+        setUserState(userData);
+        localStorage.setItem("jagspark_active_session", JSON.stringify(userData));
+      }
+    });
+    return () => unsubscribe();
+  }, [user?.email]);
+
+  // --- 2. THE MISSING FUNCTION ---
+  const uploadAvatar = async (file: File) => {
+    if (!user?.email) return;
+
+    try {
+      // Create a storage reference
+      const storageRef = ref(storage, `avatars/${user.email}`);
+      // Upload the file
+      const snapshot = await uploadBytes(storageRef, file, {
+      contentType: file.type, // Explicitly tell Firebase what kind of file it is
+    });
+      // Get the URL
+      const photoURL = await getDownloadURL(snapshot.ref);
+      // Update the user doc with the new URL
+      await updateUser({ avatar: photoURL });
+      return photoURL;
+    } catch (e) {
+      console.error("Firebase Storage Error:", e);
+      throw e;
+    }
+  };
+
+  const setUser = async (userData: UserProfile | null) => {
+    if (userData) {
+      const userRef = doc(db, "users", userData.email);
+      await setDoc(userRef, {
+        ...userData,
+        pinnedCompliments: userData.pinnedCompliments || []
+      }, { merge: true });
+      setUserState(userData);
+      localStorage.setItem("jagspark_active_session", JSON.stringify(userData));
     } else {
-      setLikedCompliments(new Set());
+      setUserState(null);
+      localStorage.removeItem("jagspark_active_session");
     }
-  }, [user?.email]); // Depend on email to avoid unnecessary re-runs
+  };
 
-  // Persist Likes whenever they change
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(`jagspark_likes_${user.email}`, JSON.stringify(Array.from(likedCompliments)));
-    }
-  }, [likedCompliments, user]);
+  const updateUser = async (updatedData: Partial<UserProfile>) => {
+    if (!user?.email) return;
+    await updateDoc(doc(db, "users", user.email), updatedData);
+  };
 
-  useEffect(() => {
-    localStorage.setItem("jagspark_compliments_db", JSON.stringify(compliments));
-  }, [compliments]);
+  const togglePin = async (complimentId: string) => {
+    if (!user?.email) return;
+    const currentPins = user.pinnedCompliments || [];
+    const newPins = currentPins.includes(complimentId)
+      ? currentPins.filter(id => id !== complimentId)
+      : [complimentId, ...currentPins];
+    await updateDoc(doc(db, "users", user.email), { pinnedCompliments: newPins });
+  };
 
-  useEffect(() => {
-    localStorage.setItem("jagspark_pinned_db", JSON.stringify(pinnedCompliments));
-  }, [pinnedCompliments]);
+  const sendCompliment = async (complimentData: any) => {
+    await addDoc(collection(db, "compliments"), {
+      ...complimentData,
+      senderId: user?.email || "anonymous",
+      likes: 0,
+      timestamp: serverTimestamp(),
+    });
+  };
+
+  const toggleLike = async (complimentId: string) => {
+    if (!user) return;
+    const isCurrentlyLiked = likedCompliments.has(complimentId);
+    await updateDoc(doc(db, "compliments", complimentId), {
+      likes: increment(isCurrentlyLiked ? -1 : 1)
+    });
+    setLikedCompliments(prev => {
+      const next = new Set(prev);
+      if (isCurrentlyLiked) next.delete(complimentId);
+      else next.add(complimentId);
+      return next;
+    });
+  };
 
   const receivedCompliments = compliments.filter(c => 
     c.recipientId === user?.email || c.recipientId === user?.username
@@ -83,93 +161,15 @@ export function ComplimentsProvider({ children }: { children: ReactNode }) {
     (c as any).senderId === user?.email || (c as any).senderId === user?.username
   );
 
-  const hasNewCompliments = user ? receivedCompliments.length > lastSeenCount : false;
-
-  const setUser = (userData: UserProfile | null) => {
-    setUserState(userData);
-    if (userData) {
-      localStorage.setItem("jagspark_active_session", JSON.stringify(userData));
-    } else {
-      localStorage.removeItem("jagspark_active_session");
-    }
-  };
-
-  // --- NEW: UPDATE USER LOGIC ---
-  const updateUser = (updatedData: Partial<UserProfile>) => {
-    if (!user) return;
-
-    const newUserData = { ...user, ...updatedData };
-    setUserState(newUserData);
-
-    // 1. Update session
-    localStorage.setItem("jagspark_active_session", JSON.stringify(newUserData));
-
-    // 2. Update permanent users database so changes persist across logouts
-    const usersDB = JSON.parse(localStorage.getItem("jagspark_users_db") || "[]");
-    const updatedDB = usersDB.map((u: UserProfile) => 
-      u.email === user.email ? { ...u, ...updatedData } : u
-    );
-    localStorage.setItem("jagspark_users_db", JSON.stringify(updatedDB));
-  };
-
-  const toggleLike = (complimentId: string) => {
-    if (!user) return;
-
-    setCompliments((prev) =>
-      prev.map((c) => {
-        if (c.id === complimentId) {
-          const isCurrentlyLiked = likedCompliments.has(complimentId);
-          return {
-            ...c,
-            likes: (c.likes || 0) + (isCurrentlyLiked ? -1 : 1),
-          };
-        }
-        return c;
-      })
-    );
-
-    setLikedCompliments((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(complimentId)) {
-        newSet.delete(complimentId);
-      } else {
-        newSet.add(complimentId);
-      }
-      return newSet;
-    });
-  };
-
-  const markAsSeen = () => {
-    if (!user) return;
-    setLastSeenCount(receivedCompliments.length);
-    localStorage.setItem(`jagspark_seen_count_${user.email}`, receivedCompliments.length.toString());
-  };
-
-  const isLiked = (complimentId: string) => likedCompliments.has(complimentId);
-
-  const sendCompliment = (complimentData: Omit<Compliment, "id" | "timestamp" | "likes">) => {
-    const newCompliment: Compliment = {
-      ...complimentData,
-      id: `sent-${Date.now()}`,
-      timestamp: new Date(),
-      likes: 0,
-      senderId: user?.email || "anonymous" 
-    } as any;
-    setCompliments((prev) => [newCompliment, ...prev]);
-  };
-
-  const togglePin = (complimentId: string) => {
-    setPinnedCompliments((prev) => 
-      prev.includes(complimentId) ? prev.filter(id => id !== complimentId) : [complimentId, ...prev]
-    );
-  };
-
   return (
     <ComplimentsContext.Provider
       value={{
-        user, setUser, updateUser, compliments, toggleLike, isLiked,
+        user, setUser, updateUser, uploadAvatar, // 3. Added to Value
+        compliments, toggleLike, 
+        isLiked: (id) => likedCompliments.has(id),
         sendCompliment, receivedCompliments, sentCompliments,
-        pinnedCompliments, togglePin, hasNewCompliments, markAsSeen,
+        pinnedCompliments: user?.pinnedCompliments || [],
+        togglePin, hasNewCompliments: false, markAsSeen: () => {},
       }}
     >
       {children}

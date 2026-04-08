@@ -3,6 +3,8 @@ import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useCompliments } from "../app/context/ComplimentsContext";
+import { db } from "../firebase"; // Ensure this path is correct
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 
 export function Login() {
   const [username, setUsername] = useState("");
@@ -10,36 +12,41 @@ export function Login() {
   const navigate = useNavigate();
   const { setUser } = useCompliments();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Look in the permanent database list we created in the Context
-    const dbData = localStorage.getItem("jagspark_users_db");
-    
-    // If the database is empty, no one has signed up yet
-    if (!dbData) {
-      alert("No accounts found. Please Sign Up first!");
-      return;
-    }
+    try {
+      const cleanInput = username.toLowerCase().trim();
+      let matchedUser: any = null;
 
-    const usersList = JSON.parse(dbData);
+      // 1. Try to fetch by Email directly (fastest)
+      const userRef = doc(db, "users", cleanInput);
+      const userSnap = await getDoc(userRef);
 
-    // 2. Clean up the input to match the saved data
-    const cleanInput = username.toLowerCase().trim();
+      if (userSnap.exists()) {
+        matchedUser = userSnap.data();
+      } else {
+        // 2. If not found by email, try searching by username field
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("username", "==", cleanInput.replace('@', '')));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          matchedUser = querySnapshot.docs[0].data();
+        }
+      }
 
-    // 3. Search the list for a matching email or username
-    const matchedUser = usersList.find((u: any) => {
-      const storedEmail = u.email.toLowerCase().trim();
-      const storedUsername = u.username.toLowerCase().replace('@', '').trim();
-      return cleanInput === storedEmail || cleanInput === storedUsername;
-    });
-
-    if (matchedUser) {
-      // 4. Set the active session in our Context
-      setUser(matchedUser); 
-      navigate("/home");
-    } else {
-      alert("User not recognized. Please check your JGUID/Email or Sign Up.");
+      // 3. Handle the result
+      if (matchedUser) {
+        // In a real app, you'd check matchedUser.password here too!
+        await setUser(matchedUser); 
+        navigate("/home");
+      } else {
+        alert("User not recognized in Firestore. Please Sign Up on this device or check your login.");
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+      alert("Connection error. Make sure your phone has internet!");
     }
   };
 

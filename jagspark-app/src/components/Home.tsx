@@ -62,7 +62,7 @@ export function Home() {
             onClick={() => setActiveTab("all")}
             className={`pb-3 px-2 text-sm font-bold transition-all ${activeTab === "all" ? "border-b-2 border-[#9B1C1C] text-[#9B1C1C]" : "text-gray-400 hover:text-gray-600"}`}
           >
-            All Compliments
+            All Sparks
           </button>
           <button 
             onClick={() => setActiveTab("liked")}
